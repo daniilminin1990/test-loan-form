@@ -1,0 +1,71 @@
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../shared/lib/routes.ts";
+import axios from "axios";
+import {AddressWorkFormData} from "../../shared/lib/types/AddressWorkFormDataType.types.ts";
+import {addressWorkSchema} from "../../shared/lib/validationSchemas.ts";
+import {QuerySingleObjectType} from "../../shared/lib/types/QueryType.types.ts";
+import s from './AddressWork.module.scss'
+
+export const AddressWork = () => {
+  const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    reset,
+  } = useForm<AddressWorkFormData>({
+    resolver: zodResolver(addressWorkSchema),
+    defaultValues: {
+      address: "",
+      workPlace: "",
+    },
+  });
+  const [categories, setCategories] = useState<QuerySingleObjectType[]>([]);
+
+  useEffect(() => {
+    axios.get("https://dummyjson.com/products/categories").then((res) => {
+      setCategories(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    const storedAddressWorkData = localStorage.getItem("addressWorkData");
+    if (storedAddressWorkData) {
+      reset(JSON.parse(storedAddressWorkData));
+    }
+  }, [reset]);
+
+  const onSubmit = (data: AddressWorkFormData) => {
+    localStorage.setItem("addressWorkData", JSON.stringify(data));
+    navigate(ROUTES.LOAN_PARAMS);
+  };
+
+  const handleBackWard = () => {
+    navigate(ROUTES.PERSONAL_INFO);
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="form">
+      <input type="text" placeholder="Адрес" {...register("address")} />
+      {errors.address && <p className={s.error}>{errors.address.message}</p>}
+
+      <select {...register("workPlace")} value={watch("workPlace") || ""}>
+        <option value="">Выберите место работы</option>
+        {categories.map((category) => (
+          <option key={category.name} value={category.name}>{category.name}</option>
+        ))}
+      </select>
+      {errors.workPlace && <p className={s.error}>{errors.workPlace.message}</p>}
+
+      <div className={s.btnBlock}>
+        <button type="button" onClick={handleBackWard}>Назад</button>
+        <button type="submit">Далее</button>
+      </div>
+    </form>
+  );
+};

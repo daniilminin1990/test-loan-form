@@ -1,0 +1,13 @@
+.btnBlock {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  & button {
+    width: 50%;
+  }
+}
+
+.error {
+  color: red;
+}
